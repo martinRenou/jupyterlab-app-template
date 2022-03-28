@@ -6,11 +6,15 @@ This documentation will guide you through making your own web application using 
 
 Like any other web application, one built using JupyterLab components requires you implement both a backend and a frontend. The backend serves all the frontend assets to the user (HTML, CSS and JavaScript code, images, data etc) by implementing the HTTP endpoints. The frontend is made of the JavaScript code that runs in the user's browser to make dynamic pages.
 
+It is advised to look at existing Lab remixes implementations and examples. You can find multiple examples of custom web applications using JupyterLab components under [the examples directory of the JupyterLab repo](https://github.com/jupyterlab/jupyterlab/tree/master/examples). These are good starting points for making simple apps. You can also look at the [jupyterlab-app-template repository](https://github.com/jtpio/jupyterlab-app-template) which provides a template for starting a more advanced application, with everything setup for packaging your application.
+
 ### Server - backend
 
 In order to implement the server application (in Python), you just need to subclass the `jupyterlab_server.LabServerApp` class. This class will provide everything for starting the web app from Python, this is where you will setup the right handlers for the different HTTP endpoints.
 
 In the following example, we create a custom Lab application with a single handler for the `http://localhost:8888/custom` endpoint, which is the main entry for our application.
+
+Let's put the following content in our `main.py` file:
 
 ```python
 import os
@@ -19,7 +23,10 @@ import tornado
 
 from jupyter_server.utils import url_path_join as ujoin
 from jupyter_server.base.handlers import JupyterHandler
-from jupyter_server.extension.handler import ExtensionHandlerMixin, ExtensionHandlerJinjaMixin
+from jupyter_server.extension.handler import (
+    ExtensionHandlerMixin,
+    ExtensionHandlerJinjaMixin
+)
 
 from jupyterlab_server import LabServerApp
 
@@ -108,14 +115,29 @@ if __name__ == '__main__':
     CustomApp.launch_instance()
 ```
 
+You can now start your lab extension running `python main.py` from your terminal (this will not work until we have a proper frontend to serve):
+
+```
+[I 2022-03-28 10:17:38.008 ServerApp] __main__ | extension was successfully linked.
+[I 2022-03-28 10:17:38.032 ServerApp] __main__ | extension was successfully loaded.
+[I 2022-03-28 10:17:38.032 ServerApp] __main__ is running without loading other extensions.
+[I 2022-03-28 10:17:38.033 ServerApp] Serving notebooks from local directory: /home/user/custom
+[I 2022-03-28 10:17:38.033 ServerApp] Jupyter Server 1.13.5 is running at:
+[I 2022-03-28 10:17:38.033 ServerApp] http://localhost:8888/custom?token=a59dee2ea49885c518515071ab058de33e725b4c73dbb890
+[I 2022-03-28 10:17:38.033 ServerApp]  or http://127.0.0.1:8888/custom?token=a59dee2ea49885c518515071ab058de33e725b4c73dbb890
+[I 2022-03-28 10:17:38.033 ServerApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+[C 2022-03-28 10:17:38.082 ServerApp]
+
+    To access the server, open this file in a browser:
+        file:///home/user/.local/share/jupyter/runtime/jpserver-12891-open.html
+    Or copy and paste one of these URLs:
+        http://localhost:8888/custom?token=a59dee2ea49885c518515071ab058de33e725b4c73dbb890
+     or http://127.0.0.1:8888/custom?token=a59dee2ea49885c518515071ab058de33e725b4c73dbb890
+Opening in existing browser session.
+```
 
 ### Client - frontend
 
-
-
-## Template and examples
-
-You can find multiple examples of custom web applications using JupyterLab components under [the examples directory of the JupyterLab repo](https://github.com/jupyterlab/jupyterlab/tree/master/examples). These are good starting points for making your
 
 
 ## Useful Links
