@@ -2,11 +2,16 @@
 
 This documentation will guide you through making your own web application using the toolset provided by the JupyterLab plugin system and JupyterLab UI components.
 
+It is advised to also look at existing Lab remixes implementations and examples.
+
+- Retrolab is a custom Lab remix which gives a class Jupyter Notebook look to JupyterLab: https://github.com/jupyterlab/retrolab
+- Quetz-frontend is the website implementation for the open source package server Quetz. The website is completely unrelated to Jupyter, but was built using the JupyterLab remix approach:  https://github.com/mamba-org/quetz-frontend
+- You can find multiple examples of custom web applications using JupyterLab components under [the examples directory of the JupyterLab repo](https://github.com/jupyterlab/jupyterlab/tree/master/examples). These are good starting points for making simple apps.
+- You can also look at the [jupyterlab-app-template repository](https://github.com/jtpio/jupyterlab-app-template) which provides a template for starting a more advanced application, with everything setup for packaging your application. This template was used for making the Quetz frontend.
+
 ## Structure of a Lab remix
 
 Like any other web application, one built using JupyterLab components requires you implement both a backend and a frontend. The backend serves all the frontend assets to the user (HTML, CSS and JavaScript code, images, data etc) by implementing the HTTP endpoints. The frontend is made of the JavaScript code that runs in the user's browser to make dynamic pages.
-
-It is advised to look at existing Lab remixes implementations and examples. You can find multiple examples of custom web applications using JupyterLab components under [the examples directory of the JupyterLab repo](https://github.com/jupyterlab/jupyterlab/tree/master/examples). These are good starting points for making simple apps. You can also look at the [jupyterlab-app-template repository](https://github.com/jtpio/jupyterlab-app-template) which provides a template for starting a more advanced application, with everything setup for packaging your application.
 
 ### Server - backend
 
@@ -93,13 +98,13 @@ class CustomApp(LabServerApp):
     load_other_extensions = False
 
     # Directory that contains the static assets (index.html, CSS, images etc)
-    static_dir = os.path.join(HERE, 'build')
-    app_settings_dir = os.path.join(HERE, 'build', 'application_settings')
-    schemas_dir = os.path.join(HERE, 'build', 'schemas')
+    static_dir = os.path.join(HERE, 'static')
+    app_settings_dir = os.path.join(HERE, 'static', 'application_settings')
+    schemas_dir = os.path.join(HERE, 'static', 'schemas')
     templates_dir = os.path.join(HERE, 'templates')
-    themes_dir = os.path.join(HERE, 'build', 'themes')
-    user_settings_dir = os.path.join(HERE, 'build', 'user_settings')
-    workspaces_dir = os.path.join(HERE, 'build', 'workspaces')
+    themes_dir = os.path.join(HERE, 'static', 'themes')
+    user_settings_dir = os.path.join(HERE, 'static', 'user_settings')
+    workspaces_dir = os.path.join(HERE, 'static', 'workspaces')
 
     def initialize_handlers(self):
         """Add custom handler to Lab Server's handler list.
@@ -138,6 +143,48 @@ Opening in existing browser session.
 
 ### Client - frontend
 
+The frontend code is everything that gets injected in the user's browser for building the app UI and making it interactive.
+
+We'll first create an `templates/index.html` Jinja template file that is our main HTML entry we render in `CustomHandler`:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{{page_config['appName'] | e}}</title>
+</head>
+<body>
+
+  {# Copy so we do not modify the page_config with updates. #}
+  {% set page_config_full = page_config.copy() %}
+
+  {# Set a dummy variable - we just want the side effect of the update. #}
+  {% set _ = page_config_full.update(baseUrl=base_url, wsUrl=ws_url) %}
+
+  <script id="jupyter-config-data" type="application/json">
+    {{ page_config_full | tojson }}
+  </script>
+
+  <!--  bundle.js is our main JavaScript file  -->
+  <script src="{{page_config['fullStaticUrl'] | e}}/bundle.js" main="index"></script>
+
+  <script type="text/javascript">
+    /* Remove token from URL. */
+    (function () {
+      var parsedUrl = new URL(window.location.href);
+      if (parsedUrl.searchParams.get('token')) {
+        parsedUrl.searchParams.delete('token');
+        window.history.replaceState({ }, '', parsedUrl.href);
+      }
+    })();
+  </script>
+
+</body>
+</html>
+
+```
+
+The main JavaScript file here is `static/bundle.js` located under the `static` directory. It is recommended, but not mandatory, to use **TypeScript** for the front-end code in order to get type hints in your IDE, it is the language that has been adopted for JupyterLab and many JupyterLab extensions. In this case we'll use TypeScript, transpile our code to JavaScript and use Webpack to generate the `bundle.js` final file.
 
 
 ## Useful Links
